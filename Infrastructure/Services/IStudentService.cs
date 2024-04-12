@@ -1,12 +1,13 @@
 using Domain.DTOs;
+using Domain.Responses;
 
 namespace Infrastructure.Services;
 
 public interface IStudentService
 {
-    Task<List<GetStudentsDto>> GetStudentsAsync();
-    Task<GetStudentsDto> GetStudentByIdAsync(int id);
-    Task<string> CreateStudentAsync(AddStudentDto student);
-    Task<string> UpdateStudentAsync(UpdateStudentDto student);
-    Task<bool> DeleteStudentAsync(int id);
+    Task<Response<List<GetStudentsDto>>> GetStudentsAsync();
+    Task<Response<GetStudentsDto>> GetStudentByIdAsync(int id);
+    Task<Response<string>> CreateStudentAsync(AddStudentDto student);
+    Task<Response<string>> UpdateStudentAsync(UpdateStudentDto student);
+    Task<Response<bool>> DeleteStudentAsync(int id);
 }

@@ -1,5 +1,7 @@
+using System.Net;
 using Domain.DTOs;
 using Domain.Entities;
+using Domain.Responses;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,38 +10,47 @@ namespace Infrastructure.Services;
 public class StudentService(DataContext context):IStudentService
 {
 
-    public async Task<List<GetStudentsDto>> GetStudentsAsync()
+    public async Task<Response<List<GetStudentsDto>>> GetStudentsAsync()
     {
-        var students = await context.Students.Where(x=>x.Id>0).ToListAsync();
-
-        var list = new List<GetStudentsDto>();
-        
-        foreach (var s in students)
+        try
         {
-            var student = new GetStudentsDto()
+            var students = await context.Students.Where(x => x.Id > 0).ToListAsync();
+
+            var list = new List<GetStudentsDto>();
+
+            foreach (var s in students)
             {
-                FullName = s.FullName,
-                Id = s.Id,
-                Phone = s.Phone
-            };
-            list.Add(student);
+                var student = new GetStudentsDto()
+                {
+                    FullName = s.FullName,
+                    Id = s.Id,
+                    Phone = s.Phone
+                };
+                list.Add(student);
+            }
+
+            return new Response<List<GetStudentsDto>>(list);
         }
-        return list;
+        catch (Exception e)
+        {
+            return new Response<List<GetStudentsDto>>(HttpStatusCode.InternalServerError, e.Message);
+        }
     }
 
-    public async Task<GetStudentsDto> GetStudentByIdAsync(int id)
+    public async Task<Response<GetStudentsDto>> GetStudentByIdAsync(int id)
     {
         var student = await context.Students.FirstOrDefaultAsync(x => x.Id == id);
+        if(student==null) return new Response<GetStudentsDto>(HttpStatusCode.BadRequest,"Student not found");
         var response = new GetStudentsDto()
         {
             FullName = student.FullName,
             Id = student.Id,
             Phone = student.Phone
         };
-        return response;
+        return new Response<GetStudentsDto>(response);
     }
 
-    public async Task<string> CreateStudentAsync(AddStudentDto student)
+    public async Task<Response<string>> CreateStudentAsync(AddStudentDto student)
     {
         var newStudent = new Student()
         {
@@ -48,29 +59,29 @@ public class StudentService(DataContext context):IStudentService
         };
         await context.Students.AddAsync(newStudent);
        var res= await context.SaveChangesAsync();
-       if(res>0) return "Successfully added";
-       return "Failed to add";
+       if(res>0) return new Response<string>("Successfully added");
+       return new Response<string>("Failed to add");
     }
 
-    public async Task<string> UpdateStudentAsync(UpdateStudentDto student)
+    public async Task<Response<string>> UpdateStudentAsync(UpdateStudentDto student)
     {
         var existingStudent = await context.Students.FirstOrDefaultAsync(x => x.Id == student.Id);
-        if(existingStudent==null) return "Not found";
+        if(existingStudent==null) return new Response<string>("Not found");
 
         existingStudent.FullName = student.FullName;
         existingStudent.Phone = student.Phone;
         var res= await context.SaveChangesAsync();
         
-        if(res>0) return "Successfully updated";
-         return "Failed to update";
+        if(res>0) return new Response<string>("Successfully updated");
+        return new Response<string>("Failed to update");
     }
 
-    public async Task<bool> DeleteStudentAsync(int id)
+    public async Task<Response<bool>> DeleteStudentAsync(int id)
     {
         var existing = await context.Students.FindAsync(id);
-        if(existing== null) return false;
+        if(existing== null) return new Response<bool>(HttpStatusCode.BadRequest,"Student not found");
         context.Students.Remove(existing);
         await context.SaveChangesAsync();
-        return true;
+        return new Response<bool>(true);
     }
 }

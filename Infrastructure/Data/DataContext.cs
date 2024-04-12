@@ -10,5 +10,9 @@ public class DataContext:DbContext
         
     }
 
+    public DbSet<Course> Courses { get; set; }
+    public DbSet<Group> Groups { get; set; }
+    public DbSet<StudentAddress> StudentAddresses { get; set; }
+    public DbSet<StudentGroup> StudentGroups { get; set; }
     public DbSet<Student> Students { get; set; }
 }
